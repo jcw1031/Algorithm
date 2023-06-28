@@ -2,56 +2,34 @@ package woopaca.programmers.lv2;
 
 public class 삼각달팽이 {
 
+    private static final int[] dx = {0, 1, -1};
+    private static final int[] dy = {1, 0, -1};
+
     private int[][] triangle;
     private int[] result;
     private int value = 1;
     private int x = 0;
     private int y = 0;
+    private int d = 0;
 
     public int[] solution(int n) {
         triangle = new int[n][n];
 
         while (true) {
-            // 아래로 이동
-            while (true) {
-                triangle[y][x] = value++;
-                if (y + 1 == n || triangle[y + 1][x] != 0) {
-                    break;
-                }
-                y++;
-            }
-            if (x + 1 == n || triangle[y][x + 1] != 0) {
-                break;
-            }
-            x++;
+            triangle[y][x] = value++;
 
-            // 오른쪽으로 이동
-            while (true) {
-                triangle[y][x] = value++;
-                if (x + 1 == n || triangle[y][x + 1] != 0) {
+            int newX = x + dx[d];
+            int newY = y + dy[d];
+            if (isOutOfIndex(n, newX, newY)) {
+                d = (d + 1) % 3;
+                newX = x + dx[d];
+                newY = y + dy[d];
+                if (isOutOfIndex(n, newX, newY)) {
                     break;
                 }
-                x++;
             }
-            if (triangle[y - 1][x - 1] != 0) {
-                break;
-            }
-            x--;
-            y--;
-
-            // 왼쪽 위로 이동
-            while (true) {
-                triangle[y][x] = value++;
-                if (triangle[y - 1][x - 1] != 0) {
-                    break;
-                }
-                x--;
-                y--;
-            }
-            if (y + 1 == n || triangle[y + 1][x] != 0) {
-                break;
-            }
-            y++;
+            x = newX;
+            y = newY;
         }
 
         result = new int[value - 1];
@@ -63,5 +41,9 @@ public class 삼각달팽이 {
         }
 
         return result;
+    }
+
+    private boolean isOutOfIndex(int n, int newX, int newY) {
+        return newX == n || newY == n || newX == -1 || newY == -1 || triangle[newY][newX] != 0;
     }
 }
