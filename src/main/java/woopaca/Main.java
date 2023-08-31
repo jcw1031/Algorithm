@@ -3,9 +3,11 @@ package woopaca;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalInt;
 import java.util.StringTokenizer;
 
 public class Main {
@@ -16,66 +18,43 @@ public class Main {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-        int n = Integer.parseInt(st.nextToken());
-        int k = Integer.parseInt(st.nextToken());
-        int[][] m = new int[n][n];
-        boolean[][] isVisited = new boolean[n][n];
-        for (int i = 0; i < n; i++) {
-            m[i] = Arrays.stream(br.readLine().split(" "))
-                    .mapToInt(Integer::parseInt)
-                    .toArray();
-        }
-        int[] complexesCount = new int[30 + 1];
+        int numberOfNodes = Integer.parseInt(st.nextToken());
+        int numberOfEdges = Integer.parseInt(st.nextToken());
+        int startNode = Integer.parseInt(st.nextToken());
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (!isVisited[i][j]) {
-                    int number = m[i][j];
-                    boolean isComplex = bfs(n, k, m, isVisited, i, j, number);
-                    if (isComplex) {
-                        complexesCount[number]++;
-                    }
-                }
-            }
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        for (int i = 1; i <= numberOfNodes; i++) {
+            graph.put(i, new ArrayList<>());
+        }
+        boolean[] isVisited = new boolean[numberOfNodes + 1];
+
+        for (int i = 0; i < numberOfEdges; i++) {
+            st = new StringTokenizer(br.readLine());
+            int node1 = Integer.parseInt(st.nextToken());
+            int node2 = Integer.parseInt(st.nextToken());
+
+            graph.get(node1).add(node2);
+            graph.get(node2).add(node1);
         }
 
-        int answer = 0;
-        int max = 0;
-        for (int i = 1; i < complexesCount.length; i++) {
-            int count = complexesCount[i];
-            if (max < count || (max == count && answer < i)) {
-                max = count;
-                answer = i;
-            }
-        }
-
-        System.out.println(answer);
-    }
-
-    private static boolean bfs(int n, int k, int[][] m, boolean[][] isVisited, int startRow, int startCol, int number) {
         int count = 0;
-        Queue<int[]> queue = new LinkedList<>();
-        isVisited[startRow][startCol] = true;
-        queue.offer(new int[]{startRow, startCol});
-
-        while (!queue.isEmpty()) {
-            int[] coordinates = queue.poll();
+        int targetNode = startNode;
+        while (true) {
+            List<Integer> targetNodeEdges = graph.get(targetNode);
+            isVisited[targetNode] = true;
             count++;
-            int row = coordinates[0];
-            int col = coordinates[1];
+            OptionalInt minimumNode = targetNodeEdges.stream()
+                    .filter(node -> !isVisited[node])
+                    .mapToInt(Integer::intValue)
+                    .min();
+            if (minimumNode.isPresent()) {
+                targetNode = minimumNode.getAsInt();
 
-            for (int[] ints : DIRECTION) {
-                int nextRow = ints[0] + row;
-                int nextCol = ints[1] + col;
-                if (nextRow < 0 || nextRow >= n || nextCol < 0 || nextCol >= n ||
-                        isVisited[nextRow][nextCol] || m[nextRow][nextCol] != number) {
-                    continue;
-                }
-
-                isVisited[nextRow][nextCol] = true;
-                queue.add(new int[]{nextRow, nextCol});
+            } else {
+                break;
             }
         }
-        return count >= k;
+
+        System.out.println(count + " " + targetNode);
     }
 }
