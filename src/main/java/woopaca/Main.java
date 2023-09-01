@@ -3,58 +3,78 @@ package woopaca;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.StringTokenizer;
 
 public class Main {
-
-    private static final int[][] DIRECTION = new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-        int numberOfNodes = Integer.parseInt(st.nextToken());
-        int numberOfEdges = Integer.parseInt(st.nextToken());
-        int startNode = Integer.parseInt(st.nextToken());
+        int numberOfFruits = Integer.parseInt(st.nextToken());
+        int playerMoney = Integer.parseInt(st.nextToken());
+        Fruit[] fruits = new Fruit[numberOfFruits];
 
-        Map<Integer, List<Integer>> graph = new HashMap<>();
-        for (int i = 1; i <= numberOfNodes; i++) {
-            graph.put(i, new ArrayList<>());
-        }
-        boolean[] isVisited = new boolean[numberOfNodes + 1];
-
-        for (int i = 0; i < numberOfEdges; i++) {
-            st = new StringTokenizer(br.readLine());
-            int node1 = Integer.parseInt(st.nextToken());
-            int node2 = Integer.parseInt(st.nextToken());
-
-            graph.get(node1).add(node2);
-            graph.get(node2).add(node1);
+        for (int i = 0; i < numberOfFruits; i++) {
+            String[] input = br.readLine().split(" ");
+            fruits[i] = new Fruit(Integer.parseInt(input[0]), Integer.parseInt(input[1]));
         }
 
-        int count = 0;
-        int targetNode = startNode;
+        long result = 0;
         while (true) {
-            List<Integer> targetNodeEdges = graph.get(targetNode);
-            isVisited[targetNode] = true;
-            count++;
-            OptionalInt minimumNode = targetNodeEdges.stream()
-                    .filter(node -> !isVisited[node])
-                    .mapToInt(Integer::intValue)
-                    .min();
-            if (minimumNode.isPresent()) {
-                targetNode = minimumNode.getAsInt();
-
-            } else {
+            Optional<Fruit> optionalFruit = Arrays.stream(fruits)
+                    .filter(fruit -> !fruit.isPurchased())
+                    .max(Comparator.comparingDouble(Fruit::getCostEffectiveness));
+            if (optionalFruit.isEmpty()) {
                 break;
             }
+
+            Fruit fruit = optionalFruit.get();
+            if (fruit.getPrice() > playerMoney) {
+                result += (long) playerMoney * fruit.getCostEffectiveness();
+                break;
+            }
+
+            result += fruit.getFullness();
+            playerMoney -= fruit.getPrice();
+            fruit.purchase();
         }
 
-        System.out.println(count + " " + targetNode);
+        System.out.println(result);
+    }
+
+    static class Fruit {
+
+        private final int price;
+        private final int fullness;
+        private boolean isPurchased;
+
+        public Fruit(int price, int fullness) {
+            this.price = price;
+            this.fullness = fullness;
+        }
+
+        public int getPrice() {
+            return price;
+        }
+
+        public int getFullness() {
+            return fullness;
+        }
+
+        public boolean isPurchased() {
+            return isPurchased;
+        }
+
+        public int getCostEffectiveness() {
+            return fullness / price;
+        }
+
+        public void purchase() {
+            isPurchased = true;
+        }
     }
 }
