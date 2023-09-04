@@ -3,9 +3,10 @@ package woopaca;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 public class Main {
@@ -14,67 +15,40 @@ public class Main {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-        int numberOfFruits = Integer.parseInt(st.nextToken());
-        int playerMoney = Integer.parseInt(st.nextToken());
-        Fruit[] fruits = new Fruit[numberOfFruits];
+        int numberOfNodes = Integer.parseInt(st.nextToken());
+        int numberOfEdges = Integer.parseInt(st.nextToken());
 
-        for (int i = 0; i < numberOfFruits; i++) {
-            String[] input = br.readLine().split(" ");
-            fruits[i] = new Fruit(Integer.parseInt(input[0]), Integer.parseInt(input[1]));
+        boolean[] isVisited = new boolean[numberOfNodes + 1];
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        for (int i = 1; i <= numberOfNodes; i++) {
+            graph.put(i, new ArrayList<>());
         }
 
-        long result = 0;
-        while (true) {
-            Optional<Fruit> optionalFruit = Arrays.stream(fruits)
-                    .filter(fruit -> !fruit.isPurchased())
-                    .max(Comparator.comparingDouble(Fruit::getCostEffectiveness));
-            if (optionalFruit.isEmpty()) {
-                break;
-            }
-
-            Fruit fruit = optionalFruit.get();
-            if (fruit.getPrice() > playerMoney) {
-                result += (long) playerMoney * fruit.getCostEffectiveness();
-                break;
-            }
-
-            result += fruit.getFullness();
-            playerMoney -= fruit.getPrice();
-            fruit.purchase();
+        for (int i = 0; i < numberOfEdges; i++) {
+            st = new StringTokenizer(br.readLine());
+            graph.get(Integer.parseInt(st.nextToken())).add(Integer.parseInt(st.nextToken()));
         }
 
-        System.out.println(result);
+        int count = 0;
+        for (int i = 1; i <= numberOfNodes; i++) {
+            if (isVisited[i]) {
+                continue;
+            }
+
+            exploreComponents(i, graph, isVisited);
+            count++;
+        }
+
+        System.out.println(count);
     }
 
-    static class Fruit {
-
-        private final int price;
-        private final int fullness;
-        private boolean isPurchased;
-
-        public Fruit(int price, int fullness) {
-            this.price = price;
-            this.fullness = fullness;
-        }
-
-        public int getPrice() {
-            return price;
-        }
-
-        public int getFullness() {
-            return fullness;
-        }
-
-        public boolean isPurchased() {
-            return isPurchased;
-        }
-
-        public int getCostEffectiveness() {
-            return fullness / price;
-        }
-
-        public void purchase() {
-            isPurchased = true;
+    private static void exploreComponents(int node, Map<Integer, List<Integer>> graph, boolean[] isVisited) {
+        isVisited[node] = true;
+        List<Integer> adjacentNodes = graph.get(node);
+        for (Integer adjacentNode : adjacentNodes) {
+            if (graph.get(adjacentNode).contains(node) && !isVisited[adjacentNode]) {
+                exploreComponents(adjacentNode, graph, isVisited);
+            }
         }
     }
 }
