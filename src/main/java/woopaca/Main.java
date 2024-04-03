@@ -1,82 +1,68 @@
 package woopaca;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
 
+    private static final StringBuilder result = new StringBuilder();
+
+    private static int[] list;
+    private static boolean[] isUsed;
+    private static int[] selectedNumbers;
+    private static int n;
+    private static int m;
+
     public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
-        StringTokenizer st = new StringTokenizer(br.readLine());
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
+        n = Integer.parseInt(tokenizer.nextToken());
+        m = Integer.parseInt(tokenizer.nextToken());
 
-        int citiesSize = Integer.parseInt(st.nextToken());
-        int loadsSize = Integer.parseInt(st.nextToken());
-        int startCity = Integer.parseInt(st.nextToken());
-        int endCity = Integer.parseInt(st.nextToken());
+        list = new int[n];
+        isUsed = new boolean[n];
+        selectedNumbers = new int[m];
 
-        ArrayList<Integer>[] country = new ArrayList[citiesSize + 1];
-        for (int i = 1; i <= citiesSize; i++) {
-            country[i] = new ArrayList<>();
+        tokenizer = new StringTokenizer(reader.readLine());
+        for (int i = 0; i < n; i++) {
+            int number = Integer.parseInt(tokenizer.nextToken());
+            list[i] = number;
         }
+        Arrays.sort(list);
 
-        for (int i = 0; i < loadsSize; i++) {
-            st = new StringTokenizer(br.readLine());
-            int city1 = Integer.parseInt(st.nextToken());
-            int city2 = Integer.parseInt(st.nextToken());
-
-            country[city1].add(city2);
-            country[city2].add(city1);
-        }
-
-
-        for (int constructionCity = 1; constructionCity <= citiesSize; constructionCity++) {
-            if (constructionCity == startCity || constructionCity == endCity) {
-                bw.write(-1 + "\n");
-                continue;
-            }
-            int result = bfs(startCity, endCity, country, constructionCity);
-            bw.write(result + "\n");
-        }
-
-        bw.flush();
-        br.close();
-        bw.close();
+        peakNumbers(0);
+        System.out.println(result);
     }
 
-    private static int bfs(int startCity, int endCity, ArrayList<Integer>[] country, int constructionCity) {
-        Queue<Integer> queue = new LinkedList<>();
-        int[] isVisited = new int[country.length + 1];
-        Arrays.fill(isVisited, Integer.MAX_VALUE);
-        queue.add(startCity);
-        isVisited[startCity] = 1;
-
-        while (!queue.isEmpty()) {
-            int city = queue.poll();
-            ArrayList<Integer> adjacentCities = country[city];
-            for (Integer adjacentCity : adjacentCities) {
-                if (adjacentCity == constructionCity) {
-                    continue;
-                }
-
-                if (isVisited[adjacentCity] > isVisited[city] + 1) {
-                    isVisited[adjacentCity] = isVisited[city] + 1;
-                    queue.add(adjacentCity);
-                }
-                if (adjacentCity == endCity) {
-                    return isVisited[endCity] == Integer.MAX_VALUE ? -1 : isVisited[endCity];
-                }
-            }
+    private static void peakNumbers(int depth) {
+        if (depth == m) {
+            printNumbers(selectedNumbers);
+            return;
         }
 
-        return -1;
+        int previousNumber = -1;
+        for (int i = 0; i < n; i++) {
+            if (!isUsed[i] && previousNumber != list[i]) {
+                selectedNumbers[depth] = list[i];
+                isUsed[i] = true;
+                previousNumber = list[i];
+                peakNumbers(depth + 1);
+                isUsed[i] = false;
+            }
+        }
+    }
+
+    private static void printNumbers(int[] numbers) {
+        /*result.append(Arrays.stream(numbers)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(" ")));*/
+        for (int number : numbers) {
+            result.append(number)
+                    .append(" ");
+        }
+        result.append(System.lineSeparator());
     }
 }
