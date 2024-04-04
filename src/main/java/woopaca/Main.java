@@ -3,100 +3,64 @@ package woopaca;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Main {
 
-    private static final int TARGET_POINT = 2;
-    private static final int IMMOVABLE_POINT = 0;
+    private static final int WHITE = 0;
+    private static final int BLUE = 1;
 
     private static int n;
-    private static int m;
-    private static int targetX;
-    private static int targetY;
-    private static int[][] map;
-    private static int[][] distanceMap;
-    private static boolean[][] isVisited;
+    private static int[][] paper;
 
     public static void main(String[] args) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
+        StringTokenizer tokenizer;
 
-        n = Integer.parseInt(tokenizer.nextToken());
-        m = Integer.parseInt(tokenizer.nextToken());
-
-        map = new int[n][m];
-        distanceMap = new int[n][m];
-        isVisited = new boolean[n][m];
+        n = Integer.parseInt(reader.readLine());
+        paper = new int[n][n];
 
         for (int i = 0; i < n; i++) {
             tokenizer = new StringTokenizer(reader.readLine());
-            for (int j = 0; j < m; j++) {
-                map[i][j] = Integer.parseInt(tokenizer.nextToken());
-                distanceMap[i][j] = -1;
-                if (map[i][j] == TARGET_POINT) {
-                    targetY = i;
-                    targetX = j;
+            for (int j = 0; j < n; j++) {
+                paper[i][j] = Integer.parseInt(tokenizer.nextToken());
+            }
+        }
+
+        ColorPaper colorPaper = circulate(0, 0, n);
+        System.out.println(colorPaper.white + System.lineSeparator() + colorPaper.blue);
+    }
+
+    private static ColorPaper circulate(int startX, int startY, int size) {
+        for (int i = startY; i < startY + size; i++) {
+            for (int j = startX; j < startX + size; j++) {
+                if (paper[i][j] != paper[startY][startX]) {
+                    return circulate(startX, startY, size / 2)
+                            .add(circulate(startX + size / 2, startY, size / 2))
+                            .add(circulate(startX, startY + size / 2, size / 2))
+                            .add(circulate(startX + size / 2, startY + size / 2, size / 2));
                 }
             }
         }
 
-        bfs(new Point(targetX, targetY, 0));
-
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                result.append(map[i][j] == IMMOVABLE_POINT ? 0 : distanceMap[i][j])
-                        .append(" ");
-            }
-            result.append(System.lineSeparator());
+        if (paper[startY][startX] == WHITE) {
+            return new ColorPaper(1, 0);
         }
-        System.out.println(result);
+        return new ColorPaper(0, 1);
     }
 
-    private static void bfs(Point targetPoint) {
-        final Queue<Point> queue = new LinkedList<>();
-        queue.offer(targetPoint);
-        isVisited[targetPoint.y][targetPoint.x] = true;
+    static class ColorPaper {
 
-        while (!queue.isEmpty()) {
-            final Point point = queue.poll();
-            distanceMap[point.y][point.x] = point.distance;
+        int white;
+        int blue;
 
-            addPoint(queue, new Point(point.x + 1, point.y, point.distance + 1));
-            addPoint(queue, new Point(point.x - 1, point.y, point.distance + 1));
-            addPoint(queue, new Point(point.x, point.y + 1, point.distance + 1));
-            addPoint(queue, new Point(point.x, point.y - 1, point.distance + 1));
-        }
-    }
-
-    private static void addPoint(Queue<Point> queue, Point point) {
-        if (point.x < 0 || point.y < 0 || point.y >= n || point.x >= m
-                || isVisited[point.y][point.x]) {
-            return;
-        }
-        if (map[point.y][point.x] == IMMOVABLE_POINT) {
-            distanceMap[point.y][point.x] = 0;
-            isVisited[point.y][point.x] = true;
-            return;
+        public ColorPaper(int white, int blue) {
+            this.white = white;
+            this.blue = blue;
         }
 
-        queue.offer(point);
-        isVisited[point.y][point.x] = true;
-    }
-
-    static class Point {
-
-        final int x;
-        final int y;
-        final int distance;
-
-        public Point(int x, int y, int distance) {
-            this.x = x;
-            this.y = y;
-            this.distance = distance;
+        public ColorPaper add(ColorPaper other) {
+            return new ColorPaper(white + other.white, blue + other.blue);
         }
     }
 }
