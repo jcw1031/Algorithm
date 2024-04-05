@@ -7,60 +7,34 @@ import java.util.StringTokenizer;
 
 public class Main {
 
-    private static final int WHITE = 0;
-    private static final int BLUE = 1;
-
-    private static int n;
-    private static int[][] paper;
+    public static final int MAX = 30;
 
     public static void main(String[] args) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer tokenizer;
 
-        n = Integer.parseInt(reader.readLine());
-        paper = new int[n][n];
+        int[][] dp = new int[MAX][MAX];
+        for (int i = 0; i < MAX; i++) {
+            dp[i][i] = 1;
+            dp[i][0] = 1;
+        }
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 2; i < MAX; i++) {
+            for (int j = 1; j < MAX; j++) {
+                dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j];
+            }
+        }
+
+        int t = Integer.parseInt(reader.readLine());
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < t; i++) {
             tokenizer = new StringTokenizer(reader.readLine());
-            for (int j = 0; j < n; j++) {
-                paper[i][j] = Integer.parseInt(tokenizer.nextToken());
-            }
+            int n = Integer.parseInt(tokenizer.nextToken());
+            int m = Integer.parseInt(tokenizer.nextToken());
+
+            result.append(dp[m][n])
+                    .append("\n");
         }
-
-        ColorPaper colorPaper = circulate(0, 0, n);
-        System.out.println(colorPaper.white + System.lineSeparator() + colorPaper.blue);
-    }
-
-    private static ColorPaper circulate(int startX, int startY, int size) {
-        for (int i = startY; i < startY + size; i++) {
-            for (int j = startX; j < startX + size; j++) {
-                if (paper[i][j] != paper[startY][startX]) {
-                    return circulate(startX, startY, size / 2)
-                            .add(circulate(startX + size / 2, startY, size / 2))
-                            .add(circulate(startX, startY + size / 2, size / 2))
-                            .add(circulate(startX + size / 2, startY + size / 2, size / 2));
-                }
-            }
-        }
-
-        if (paper[startY][startX] == WHITE) {
-            return new ColorPaper(1, 0);
-        }
-        return new ColorPaper(0, 1);
-    }
-
-    static class ColorPaper {
-
-        int white;
-        int blue;
-
-        public ColorPaper(int white, int blue) {
-            this.white = white;
-            this.blue = blue;
-        }
-
-        public ColorPaper add(ColorPaper other) {
-            return new ColorPaper(white + other.white, blue + other.blue);
-        }
+        System.out.println(result);
     }
 }
